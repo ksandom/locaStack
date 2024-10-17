@@ -14,31 +14,31 @@ The original documentation that it is based off is:
 ### Installation
 
 ```
-./osHelper installP1
+./bin/osHelper installP1
 ```
 
 Once that completes, you can run
 
 ```
-./osHelper installP2
+./bin/osHelper installP2
 ```
 
 ### Uninstall
 
 ```
-./osHelper uninstall
+./bin/osHelper uninstall
 ```
 
 ### Reinstall
 
 ```
-./osHelper uninstall
+./bin/osHelper uninstall
 ```
 
 Once that completes, you can run
 
 ```
-./osHelper installP2
+./bin/osHelper installP2
 ```
 
 ### Stop/Start
@@ -46,11 +46,11 @@ Once that completes, you can run
 I don't think this holds as much value as I originally thought. It seems to come up just fine when left alone for several (~10-15) minutes after startup. But here it is anyway:
 
 ```
-./osHelper stop
+./bin/osHelper stop
 ```
 
 ```
-./osHelper start
+./bin/osHelper start
 ```
 
 ### See everything that it can currently do
@@ -58,5 +58,5 @@ I don't think this holds as much value as I originally thought. It seems to come
 There's more.
 
 ```
-./osHelper
+./bin/osHelper
 ```
