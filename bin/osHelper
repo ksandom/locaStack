@@ -1,0 +1,80 @@
+#!/bin/bash
+# Useful stuff for managing OpenStack.
+
+case $1 in
+    mon1) # Some monitoring for debugging.
+        watch 'df -h /; echo ; echo; ip addr'
+    ;;
+    mon2) # Some more monitoring for debugging.
+        cd /var/snap
+        sudo watch -n 3 'du -sh *; echo ; snap list; echo ; snap saved; echo ; systemctl status jujud-machine-0.service; echo; systemctl status snap.juju-db.daemon.service'
+    ;;
+    mon3) # Some monitoring for usage.
+        watch -n5 "$0 kubeState"
+    ;;
+    kubeState) # Show the current state of things in kubernetes.
+        uptime
+        echo
+
+        free -m
+        echo
+
+        df -h /
+        echo
+        kubectl describe pods --namespace openstack | grep ^Name: | wc -l
+        kubectl describe pods --namespace openstack | grep ^Name: | sed 's/^Name: *//g'
+    ;;
+    installP1) # Install OpenStack - Part 1.
+        # https://ubuntu.com/openstack/install
+        echo 1: OpenStack snap
+        sudo snap install openstack --classic --channel 2024.1/beta
+
+        echo 2: Prep.
+        if ! sunbeam prepare-node-script | bash -x; then
+            echo  "$? from sunbeam prepare-node-script"
+        fi
+        if ! newgrp snap_daemon; then
+            echo "$? from newgrp snap_daemon"
+        fi
+    ;;
+    installP2) # Install OpenStack - Part 2.
+        set -ex
+        echo 3: Bootstrap.
+        sunbeam cluster bootstrap --accept-defaults
+
+        echo 4: Configure.
+        sunbeam configure --accept-defaults --openrc demo-openrc
+
+        echo 5: Launch instance.
+        sunbeam launch ubuntu --name test
+    ;;
+    uninstall) # Uninstall OpenStack.
+        sudo systemctl stop jujud-machine-0.service
+        sudo systemctl stop snap.juju-db.daemon.service
+        sudo snap remove juju juju-db microk8s openstack openstack-hypervisor
+        sudo snap remove juju juju-db microk8s openstack openstack-hypervisor
+        sudo snap remove juju juju-db microk8s openstack openstack-hypervisor
+
+        for snapshot in $(snap saved | tail  -n+2 | awk '{print $1}'); do
+            sudo snap forget "$snapshot"
+        done
+    ;;
+    reinstall) # Uninstall and then reinstall.
+        $0 uninstall
+        $0 installP1
+    ;;
+    start) # Start OpenStack.
+        # https://ubuntu.com/tutorials/tear-down-your-openstack-lab-environment#2-stop-and-sunbeam
+        sudo snap start openstack-hypervisor
+        sudo snap start microk8s
+    ;;
+    stop) # Stop OpenStack.
+        sudo snap stop microk8s
+        sudo snap stop openstack-hypervisor
+    ;;
+    *)
+        echo "Need an option:"
+        grep ') [#]' "$0" | sed 's/) [#]/|/g; s/^ *//g' | column -t -s\|
+    ;;
+esac
+
